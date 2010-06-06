@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="msgpack-socket-rpc" default="usage" basedir=".">
+  
+  <target name="usage" description="--> usage">
+    <echo message="" />
+    <echo message="-----------------------------------                  " />
+    <echo message="${ant.project.name} usage:                           " />
+    <echo message="package => create package                            " />
+    <echo message="-----------------------------------                  " />
+    <echo message="" />
+  </target>
+  
+</project>
