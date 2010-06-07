@@ -51,17 +51,14 @@ class SocketHandler implements Runnable {
                     buffer.flip();
                     tmp.clear();
                 }
-                if(!socket.isInputShutdown()){
-                    socket.shutdownInput();
-                }
                 
                 //buffer.compact();
                 byte[] data = new byte[buffer.remaining()];
                 buffer.get(data);
                 
                 forward(data, out);
-                socket.shutdownOutput();
             }
+            socket.shutdownOutput();
         } catch(IOException e){
             e.printStackTrace();
             logger.warning("Error while reading/writing:" + e);
@@ -97,11 +94,12 @@ class SocketHandler implements Runnable {
             
             Response response = forwarder.doRPC(request);
             
-            Packer packer = new Packer(out);
+            final Packer packer = new Packer(out);
             packer.pack(response);
             out.flush();
         } catch(UnpackException e){
             logger.warning("Error while unserialized data:" + e);
         }
     }
+    
 }

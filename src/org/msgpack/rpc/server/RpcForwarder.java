@@ -8,13 +8,31 @@ import org.msgpack.rpc.BlockingService;
 import org.msgpack.rpc.Request;
 import org.msgpack.rpc.Response;
 import org.msgpack.rpc.ServiceException;
+import org.msgpack.rpc.server.annotation.Service;
 
 class RpcForwarder {
     
     protected final Map<String, BlockingService> blockingService = new HashMap<String, BlockingService>();
     
+    public void registerReflectiveBlockingService(ReflectiveBlockingService service){
+        Service target = service.getTargetClass().getAnnotation(Service.class);
+        if(null == target){
+            throw new IllegalArgumentException("Service annotation was nul;");
+        }
+        registerBlockingService(target.value().getName(), service);
+    }
+    
     public void registerBlockingService(BlockingService service){
-        blockingService.put(service.getClass().getName(), service);
+        Service target = service.getClass().getAnnotation(Service.class);
+        if(null == target){
+            throw new IllegalArgumentException("Service annotation was null");
+        }
+        
+        registerBlockingService(target.getClass().getName(), service);
+    }
+    
+    protected void registerBlockingService(String serviceName, BlockingService service){
+        blockingService.put(serviceName, service);
     }
     
     public Response doRPC(Request request) throws IOException {

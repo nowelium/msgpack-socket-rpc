@@ -89,7 +89,8 @@ public class Response implements Serializable, MessagePackable, MessageConvertab
 
     @Override
     public void messageUnpack(Unpacker unpacker) throws IOException, MessageTypeException {
-        messageConvert(unpacker.getData());
+        // FIXME: Request#messageUnpack <-> Responae#messageUnpack
+        messageConvert(unpacker.next().getData());
     }
     
     @Override
@@ -98,8 +99,24 @@ public class Response implements Serializable, MessagePackable, MessageConvertab
         FieldSchema[] fields = _SCHEMA.getFields();
         this.type = MessageType.get((Integer) fields[0].getSchema().convert(source[0]));
         this.id = (Integer) fields[1].getSchema().convert(source[1]);
-        this.errorMessage = (String) fields[2].getSchema().convert(source[2]);
-        this.result = fields[3].getSchema().convert(source[3]);
+        if(null != source[2]){
+            this.errorMessage = (String) fields[2].getSchema().convert(source[2]);
+        }
+        if(null != source[3]){
+            Object _rs = fields[3].getSchema().convert(source[3]);
+            if(_rs instanceof byte[]){
+                this.result = new String((byte[]) _rs);
+            } else if(_rs instanceof Byte[]){
+                Byte[] _bytes = (Byte[]) _rs;
+                byte[] buf = new byte[_bytes.length];
+                for(int i = 0; i < _bytes.length; ++i){
+                    buf[i] = _bytes[i].byteValue();
+                }
+                this.result = new String(buf);
+            } else {
+                this.result = _rs;
+            }
+        }
     }
 
 }

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
@@ -16,6 +18,7 @@ import org.msgpack.rpc.Request;
 import org.msgpack.rpc.Response;
 import org.msgpack.rpc.RpcController;
 import org.msgpack.rpc.ServiceException;
+import org.msgpack.rpc.server.annotation.Service;
 
 public class ServiceProxy {
     
@@ -56,14 +59,20 @@ public class ServiceProxy {
         request.setId(id.incrementAndGet());
         request.setServiceName(serviceName);
         request.setMethod(methodName);
-        request.setParams(args);
+        if(null != args){
+            List<Object> params = new ArrayList<Object>();
+            for(Object arg: args){
+                params.add(arg);
+            }
+            request.setParams(params);
+        }
         
         RpcController.Connection connection = controller.getConnection();
         Response response = connection.call(request);
         if(null != response.getErrorMessage()){
             throw new ServiceException(response.getErrorMessage());
         }
-        return response;
+        return response.getResult();
     }
     
     public Future<Object> asyncCall(String serviceName, String methodName, Object...args) throws IOException {
@@ -77,7 +86,13 @@ public class ServiceProxy {
         request.setId(id.incrementAndGet());
         request.setServiceName(serviceName);
         request.setMethod(methodName);
-        request.setParams(args);
+        if(null != args){
+            List<Object> params = new ArrayList<Object>();
+            for(Object arg: args){
+                params.add(arg);
+            }
+            request.setParams(params);
+        }
         
         RpcController.Connection connection = controller.getConnection();
         connection.send(request, new CallbackImpl(responder));
@@ -165,13 +180,22 @@ public class ServiceProxy {
         
         protected final Responder responder;
         
+        protected final String serviceName;
+        
         protected ServiceHandler(Class<?> service, Responder responder){
             this.service = service;
             this.responder = responder;
+            
+            Service target = service.getAnnotation(Service.class);
+            if(null == target){
+                this.serviceName = service.getName();
+            } else {
+                this.serviceName = target.value().getName();
+            }
         }
         
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            asyncCall(responder, service.getName(), method.getName(), args);
+            asyncCall(responder, serviceName, method.getName(), args);
             return null;
         }
     }
@@ -180,12 +204,20 @@ public class ServiceProxy {
         
         protected final Class<?> service;
         
+        protected final String serviceName;
+        
         protected BlockingServiceHandler(Class<?> service){
             this.service = service;
+            Service target = service.getAnnotation(Service.class);
+            if(null == target){
+                this.serviceName = service.getName();
+            } else {
+                this.serviceName = target.value().getName();
+            }
         }
         
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return call(service.getName(), method.getName(), args);
+            return call(serviceName, method.getName(), args);
         }
     }
 }

@@ -38,6 +38,10 @@ public class SocketRpcServer implements Server {
         serverThread.setDaemon(true);
     }
     
+    public void registerReflectiveBlockingService(ReflectiveBlockingService service){
+        forwarder.registerReflectiveBlockingService(service);
+    }
+    
     public void registerBlockingService(BlockingService service){
         forwarder.registerBlockingService(service);
     }

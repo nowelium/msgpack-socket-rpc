@@ -13,7 +13,7 @@ public class SocketRpcServerTest {
     @Test
     public void testTcp() throws Exception {
         SocketRpcServer server = new SocketRpcServer(19850, Executors.newSingleThreadExecutor());
-        server.registerBlockingService(new TestBlockingService());
+        server.registerReflectiveBlockingService(new ReflectiveBlockingService(new TestBlockingService()));
         server.start();
         
         RpcController controller = new RpcControllerFactory().createTCP("localhost", 19850);
@@ -33,6 +33,7 @@ public class SocketRpcServerTest {
         Assert.assertEquals(service.test1(), "test1");
         service.test2();
         service.test3(123);
+        service.test4(456);
         Assert.assertEquals(service.test4(456), 456);
     }
 

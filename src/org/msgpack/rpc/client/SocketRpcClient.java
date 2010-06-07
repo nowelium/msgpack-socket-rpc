@@ -7,9 +7,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -108,29 +105,41 @@ public class SocketRpcClient implements Client {
                 
                 // reciev
                 
+                /*
                 // TODO: this should not be hardcoded to 4096 bytes
                 final ByteBuffer buffer = ByteBuffer.allocateDirect(4096);
-                ReadableByteChannel channel = Channels.newChannel(in);
-                if(!socket.isClosed()){
-                    // TODO: this should not be hardcoded to 1024 bytes
-                    final ByteBuffer tmp = ByteBuffer.allocate(1024);
-                    while(0 < channel.read(tmp)){
-                        tmp.flip();
-                        buffer.put(tmp);
-                        buffer.flip();
-                        tmp.clear();
-                    }
+                final ReadableByteChannel channel = Channels.newChannel(in);
+                
+                // TODO: this should not be hardcoded to 1024 bytes
+                final ByteBuffer tmp = ByteBuffer.allocateDirect(1024);
+                while(0 < channel.read(tmp)){
+                    tmp.flip();
+                    buffer.put(tmp);
+                    buffer.flip();
+                    tmp.clear();
                 }
                 socket.shutdownInput();
                 
-                final Unpacker unpacker = new Unpacker();
-                byte[] data = new byte[buffer.remaining()];
+                final byte[] data = new byte[buffer.remaining()];
                 buffer.get(data);
+                
+                final Unpacker unpacker = new Unpacker();
                 unpacker.wrap(data);
                 if(!unpacker.execute()){
                     throw new IOException("Invalid unpacked data");
                 }
                 
+                Response response = new Response();
+                response.messageUnpack(unpacker);
+                return response;
+                */
+                
+                final Unpacker unpacker = new Unpacker(in);
+                while(!unpacker.isFinished()){
+                    if(!unpacker.fill()){
+                        break;
+                    }
+                }
                 Response response = new Response();
                 response.messageUnpack(unpacker);
                 return response;

@@ -35,7 +35,7 @@ public class Request implements Serializable, MessagePackable, MessageConvertabl
     
     private String method;
     
-    private Object[] params;
+    private List<?> params;
     
     public MessageType getType(){
         return type;
@@ -65,11 +65,11 @@ public class Request implements Serializable, MessagePackable, MessageConvertabl
         this.method = method;
     }
 
-    public Object[] getParams() {
+    public List<?> getParams() {
         return params;
     }
 
-    public void setParams(Object[] params) {
+    public void setParams(List<?> params) {
         this.params = params;
     }
     
@@ -114,7 +114,7 @@ public class Request implements Serializable, MessagePackable, MessageConvertabl
         this.serviceName = (String) fields[2].getSchema().convert(source[2]);
         this.method = (String) fields[3].getSchema().convert(source[3]);
         if(null != source[4]){
-            this.params = (Object[]) fields[4].getSchema().convert(source[4]);
+            this.params = (List<?>) fields[4].getSchema().convert(source[4]);
         }
     }
 
