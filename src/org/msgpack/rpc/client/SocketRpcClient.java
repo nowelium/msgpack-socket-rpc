@@ -1,5 +1,6 @@
 package org.msgpack.rpc.client;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,8 +21,6 @@ import org.msgpack.Unpacker;
 import org.msgpack.rpc.Request;
 import org.msgpack.rpc.Response;
 import org.msgpack.rpc.RpcController.Callback;
-
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 public class SocketRpcClient implements Client {
     
@@ -100,10 +99,10 @@ public class SocketRpcClient implements Client {
                 // send
                 // new Packer(out).pack(request);
                 
-                ByteOutputStream o = new ByteOutputStream();
+                ByteArrayOutputStream o = new ByteArrayOutputStream();
                 new Packer(o).pack(request);
                 
-                out.write(o.getBytes());
+                out.write(o.toByteArray());
                 out.flush();
                 socket.shutdownOutput();
                 
